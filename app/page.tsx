@@ -1,103 +1,60 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useEffect, Suspense } from "react";
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [trackName, setTrackName] = useState("");
+  const [artistName, setArtistName] = useState("");
+  const [albumImage, setAlbumImage] = useState<string | null>(null);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
-        </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
+  useEffect(() => {
+    if (!trackName || !artistName) return;
+
+    const fetchAlbumImage = async () => {
+      const response = await fetch(
+        `http://localhost:8000/get_album_image?track_name=${encodeURIComponent(trackName)}&artist_name=${encodeURIComponent(artistName)}`
+      );
+      const data = await response.json();
+      setAlbumImage(data.album_image);
+    };
+
+    fetchAlbumImage();
+  }, [trackName, artistName]);
+
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <div className="flex flex-col items-center justify-center min-h-screen bg-gray-900 text-white p-6">
+        <h1 className="text-3xl font-bold mb-6">ジャケット画像取得</h1>
+
+        <input
+          type="text"
+          placeholder="曲名を入力"
+          className="p-2 rounded bg-gray-800 text-white mb-2"
+          value={trackName}
+          onChange={(e) => setTrackName(e.target.value)}
+        />
+
+        <input
+          type="text"
+          placeholder="アーティスト名を入力"
+          className="p-2 rounded bg-gray-800 text-white mb-4"
+          value={artistName}
+          onChange={(e) => setArtistName(e.target.value)}
+        />
+
+        <button
+          className="bg-blue-500 px-4 py-2 rounded text-white mb-4"
+          onClick={() => setAlbumImage(null)}
         >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
-    </div>
+          ジャケット画像を取得
+        </button>
+
+        {albumImage && (
+          <div className="flex flex-col items-center">
+            <img src={albumImage} alt="Album Cover" className="w-64 h-64 rounded-lg shadow-lg mb-4" />
+          </div>
+        )}
+      </div>
+    </Suspense>
   );
 }
